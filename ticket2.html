@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket à Gratter</title>
+  <style>
+    body {
+      background: url('background.png') no-repeat center center;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* ✅ Agrandi à 140% */
+    #container {
+      position: relative;
+      width: 451px;  /* 322px × 1.4 */
+      height: 286px; /* 204px × 1.4 */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #gainImage {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <img id="gainImage" src="gain.png" alt="Gain">
+  <canvas id="scratchCanvas"></canvas>
+</div>
+
+<script>
+  const canvas = document.getElementById('scratchCanvas');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('container');
+
+  function draw(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function setupScratch() {
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+
+    const surfaceImage = new Image();
+    surfaceImage.src = 'surface.png';
+
+    surfaceImage.onload = function () {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(surfaceImage, 0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'destination-out'; // mode "efface"
+    };
+  }
+
+  window.onload = setupScratch;
+
+  // Souris
+  let isDrawing = false;
+
+  canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    draw(e.offsetX, e.offsetY);
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (isDrawing) {
+      draw(e.offsetX, e.offsetY);
+    }
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    isDrawing = false;
+  });
+
+  // Tactile
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    draw(touch.clientX - rect.left, touch.clientY - rect.top);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    draw(touch.clientX - rect.left, touch.clientY - rect.top);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    isDrawing = false;
+  });
+</script>
+
+</body>
+</html>
